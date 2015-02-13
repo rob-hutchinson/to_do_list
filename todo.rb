@@ -47,6 +47,11 @@ def print_all
   end
 end
 
+def surprise
+  x = Task.order("RANDOM()").where(t_done: false).first
+  puts "#{x.task.capitalize} from #{List.find(x.list_id).list_name.upcase} is INCOMPLETE! It is due: #{x.t_due_date}.".colorize(:red)
+end
+
 command = ARGV.shift
 case command
 when "add"
@@ -76,4 +81,7 @@ when "list"
     list_name = ARGV.first.downcase
     print_list list_name
   end
+when "next"
+  # Finds random uncompleted task
+  surprise
 end
