@@ -26,13 +26,13 @@ end
 
 def print 
   Task.order(list_id: :asc).where(t_done: false).each do |x|
-    puts "#{x.task.capitalize} from list #{List.find(x.list_id).list_name.upcase} is INCOMPLETE! It is due: #{x.t_due_date}.".colorize(:red)
+    done_or_not(x)
   end
 end
 
 def print_list list_name
   tasks = Task.order(list_id: :asc).where(list_id: List.find_by(list_name: list_name).id).each do |x|
-    puts "#{x.task.capitalize} from list #{List.find(x.list_id).list_name.upcase} is INCOMPLETE! It is due: #{x.t_due_date}.".colorize(:red)
+    done_or_not(x)
   end
 end
 
@@ -51,10 +51,9 @@ def done_or_not task
 end
 
 def surprise
-  x = Task.where.not(t_due_date: nil).where(t_done: false).order("RANDOM()").first
+  x = Task.where.not(t_due_date: nil, t_done: true).order("RANDOM()").first
   unless x == nil
     done_or_not(x)
-    # puts "#{x.task.capitalize} from list #{List.find(x.list_id).list_name.upcase} is INCOMPLETE! It is due: #{x.t_due_date}.".colorize(:red)
   else
     x = Task.where(t_done: false).order("RANDOM()").first
     done_or_not(x)
@@ -83,18 +82,15 @@ when "add"
   # Add task entry and list entry
   list = ARGV.first.downcase
   task = ARGV[1].downcase
-
   add task, list
 when "due"
   # Tags tasks with due dates
   task = ARGV.first
   due_date = ARGV[1]
-
   due task, due_date
 when "done"
   # Marks a given task as completed
   id = ARGV.first
-
   done id
 when "list"
   # Various ways to list your to-dos
