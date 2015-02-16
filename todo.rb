@@ -3,7 +3,7 @@ require "./db/setup"
 require "./lib/all"
 require 'faker'
 require 'colorize'
-require 'date'
+
 
 puts "#{Faker::Hacker.say_something_smart}".colorize(:light_red)
 
@@ -26,31 +26,56 @@ end
 
 def print 
   Task.order(list_id: :asc).where(t_done: false).each do |x|
-    puts "#{x.task.capitalize} from #{List.find(x.list_id).list_name.upcase} is INCOMPLETE! It is due: #{x.t_due_date}.".colorize(:red)
+    puts "#{x.task.capitalize} from list #{List.find(x.list_id).list_name.upcase} is INCOMPLETE! It is due: #{x.t_due_date}.".colorize(:red)
   end
 end
 
 def print_list list_name
-  puts "Printing list: #{list_name.upcase}".colorize(:light_blue)
   tasks = Task.order(list_id: :asc).where(list_id: List.find_by(list_name: list_name).id).each do |x|
-    puts "#{x.task.capitalize} from #{List.find(x.list_id).list_name.upcase} is INCOMPLETE! It is due: #{x.t_due_date}.".colorize(:red)
+    puts "#{x.task.capitalize} from list #{List.find(x.list_id).list_name.upcase} is INCOMPLETE! It is due: #{x.t_due_date}.".colorize(:red)
   end
 end
 
 def print_all
   Task.order(list_id: :asc).each do |x|
-    if x.t_done == false
-      puts "#{x.task.capitalize} from #{List.find(x.list_id).list_name.upcase} is INCOMPLETE! It is due: #{x.t_due_date}.".colorize(:red)
+    done_or_not(x)
+  end
+end
+
+def done_or_not task
+   if task.t_done == false
+      puts "#{task.task.capitalize} from list #{List.find(task.list_id).list_name.upcase} is INCOMPLETE! It is due: #{task.t_due_date}.".colorize(:red)
     else
-      puts "#{x.task.capitalize} from #{List.find(x.list_id).list_name.upcase} is COMPLETE!".colorize(:green)
+      puts "#{task.task.capitalize} from list #{List.find(task.list_id).list_name.upcase} is COMPLETE!".colorize(:green)
+    end
+end
+
+def surprise
+  x = Task.where.not(t_due_date: nil).where(t_done: false).order("RANDOM()").first
+  unless x == nil
+    done_or_not(x)
+    # puts "#{x.task.capitalize} from list #{List.find(x.list_id).list_name.upcase} is INCOMPLETE! It is due: #{x.t_due_date}.".colorize(:red)
+  else
+    x = Task.where(t_done: false).order("RANDOM()").first
+    done_or_not(x)
+  end
+end
+
+def john_wayne string
+  # Searches for a list matching the string and returns all items on that list
+  List.find_each do |x|
+    if x.list_name.include?(string)
+      print_list(x.list_name)
+    end
+  end
+  # Now searches for a string in task names
+  Task.find_each do |y|
+    if y.task.include?(string)
+      done_or_not(y)
     end
   end
 end
 
-def surprise
-  x = Task.order("RANDOM()").where(t_done: false).first
-  puts "#{x.task.capitalize} from #{List.find(x.list_id).list_name.upcase} is INCOMPLETE! It is due: #{x.t_due_date}.".colorize(:red)
-end
 
 command = ARGV.shift
 case command
@@ -79,9 +104,14 @@ when "list"
     print_all
   else
     list_name = ARGV.first.downcase
+    puts "Printing list: #{list_name.upcase}".colorize(:light_blue)
     print_list list_name
   end
 when "next"
-  # Finds random uncompleted task
+  # Finds random uncompleted task with due date
   surprise
+when "search"
+  # Searches tasks or lists for a string
+  string = ARGV.first
+  john_wayne string
 end
