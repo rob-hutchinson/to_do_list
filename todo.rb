@@ -11,13 +11,13 @@ class Todo < Thor
   end
 
   desc "due TASK DUE_DATE", "Marks task with [TASK] ID with a [DUE DATE]"
-  def due task, due_date
-    do_by task, due_date
+  def due task_id, due_date
+    Task.find(task_id).do_by Date.parse(due_date)
   end
 
   desc "done ID", "Marks the task with the given [ID] as done"
   def done id
-    finished id
+    Task.find(id).finished!
   end
 
   desc "next", "Returns a random uncompleted task"
@@ -27,7 +27,8 @@ class Todo < Thor
 
   desc "search STRING", "Searches tasks for [STRING] and returns appropriate tasks"
   def search string
-    john_wayne string
+    #john_wayne string
+    Task.search string
   end
 
   desc "list [ALL/LIST]", "Prints unfinished tasks or optionally tasks from [LIST] or [ALL] tasks"
@@ -39,18 +40,6 @@ end
 def addition task, list
   a = List.find_or_create_by! list_name: list
   Task.create! task: task, list_id: a.id 
-end
-
-def do_by task, due_date
-  a = Task.find(task)
-  a.t_due_date = Date.parse(due_date)
-  a.save!
-end
-
-def finished id
-  a = Task.find(id)
-  a.t_done = true
-  a.save!
 end
 
 def rando
