@@ -17,7 +17,7 @@ class Todo < Thor
 
   desc "done ID", "Marks the task with the given [ID] as done"
   def done id
-    finished id
+    Task.find(id).finished!
   end
 
   desc "next", "Returns a random uncompleted task"
@@ -44,12 +44,6 @@ end
 def do_by task, due_date
   a = Task.find(task)
   a.t_due_date = Date.parse(due_date)
-  a.save!
-end
-
-def finished id
-  a = Task.find(id)
-  a.t_done = true
   a.save!
 end
 
